@@ -28,7 +28,7 @@ public class AdminUserController {
                                 @RequestParam(value = "from", required = false, defaultValue = "0") int from,
                                 @RequestParam(value = "size", required = false, defaultValue = "10") int size
     ) {
-        log.info("Получение информации о всех пользователях.");
+        log.info("Получение информации о всех пользователях по id или по страницам.");
         return userService.getAll(ids, from, size);
     }
 
