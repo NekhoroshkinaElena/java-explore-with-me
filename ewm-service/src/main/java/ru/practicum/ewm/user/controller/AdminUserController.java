@@ -24,12 +24,12 @@ public class AdminUserController {
     }
 
     @GetMapping("/users")
-    public List<UserDto> getAll(@RequestParam(value = "ids") List<Long> ids,
+    public List<UserDto> getAll(@RequestParam(value = "ids", required = false) List<Long> ids,
                                 @RequestParam(value = "from", required = false, defaultValue = "0") int from,
                                 @RequestParam(value = "size", required = false, defaultValue = "10") int size
     ) {
         log.info("Получение информации о всех пользователях.");
-        return userService.getAllById(ids, from, size);
+        return userService.getAll(ids, from, size);
     }
 
     @DeleteMapping("/users/{userId}")

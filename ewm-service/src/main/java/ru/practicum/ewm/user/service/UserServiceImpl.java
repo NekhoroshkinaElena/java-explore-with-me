@@ -30,13 +30,13 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(userRepository.save(user));
     }
 
-    public List<UserDto> getAllById(List<Long> ids, int from, int size) {
-        if (ids != null) {
-            return userRepository.findAll().stream().filter(user ->
-                    ids.contains(user.getId())).map(UserMapper::toUserDto).collect(Collectors.toList());
-        } else {
+    public List<UserDto> getAll(List<Long> ids, int from, int size) {
+        if (ids == null || ids.isEmpty()) {
             return userRepository.findAll(PageRequest.of(from, size))
                     .stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+        } else {
+            return userRepository.findAll().stream().filter(user ->
+                    ids.contains(user.getId())).map(UserMapper::toUserDto).collect(Collectors.toList());
         }
     }
 

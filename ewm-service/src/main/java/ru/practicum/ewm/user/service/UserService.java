@@ -9,7 +9,7 @@ public interface UserService {
 
     UserDto save(NewUserRequest userDto);
 
-    List<UserDto> getAllById(List<Long> ids, int from, int size);
+    List<UserDto> getAll(List<Long> ids, int from, int size);
 
     void delete(long userId);
 }
