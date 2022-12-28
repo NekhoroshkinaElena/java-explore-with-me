@@ -9,10 +9,8 @@ import java.time.format.DateTimeFormatter;
 public class TimeMapper {
 
     public static String timeToString(LocalDateTime time) {
-
         DateTimeFormatter customFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String time1 = time.format(customFormat);
-        return time1;
+        return time.format(customFormat);
     }
 
     public static LocalDateTime stringToTime(String time) {

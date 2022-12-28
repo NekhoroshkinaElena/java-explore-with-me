@@ -1,41 +1,37 @@
 package ru.practicum.ewm.event.service;
 
-import ru.practicum.ewm.event.dto.EventShortDto;
-import ru.practicum.ewm.event.dto.GetEventRequestForAdmin;
-import ru.practicum.ewm.event.dto.GetEventRequestForAll;
-import ru.practicum.ewm.event.dto.NewEventDto;
-import ru.practicum.ewm.event.model.Event;
-import ru.practicum.ewm.request.model.Request;
+import ru.practicum.ewm.event.dto.*;
+import ru.practicum.ewm.request.dto.RequestDto;
 
 import java.util.List;
 
 public interface EventService {
 
-    Event save(NewEventDto newEventDto, long userId);
+    EventOutputDto save(NewEventDto eventDto, long userId);
 
-    Event publish(long eventId);
+    EventOutputDto publish(long eventId);
 
-    Event rejectAdmin(long eventId);
+    EventOutputDto rejectAdmin(long eventId);
 
-    Event editAdmin(long eventId, NewEventDto newEventDto);
+    EventOutputDto editAdmin(long eventId, NewEventDto newEventDto);
 
-    Event editUser(long userId, EventShortDto eventShortDto);
+    EventOutputDto editUser(long userId, EventShortDto eventShortDto);
 
-    List<Event> getAllForUser(long userId);
+    List<EvenShortDtoForUser> getAllForUser(long userId, int from, int size);
 
-    Event getByIdForUser(long userId, long eventId);
+    EventOutputDto getByIdForUser(long userId, long eventId);
 
-    Event rejectEventUser(long userId, long eventId);
+    EventOutputDto rejectUser(long userId, long eventId);
 
-    Request confirmRequestUser(long userId, long eventId, long reqId);
+    RequestDto confirmRequestUser(long userId, long eventId, long reqId);
 
-    Request rejectRequestUser(long userId, long eventId, long reqId);
+    RequestDto rejectRequestUser(long userId, long eventId, long reqId);
 
-    List<Request> getAllRequestForEventUser(long userId, long eventId);
+    List<RequestDto> getAllRequestForEvent(long userId, long eventId);
 
-    Event getEventById(long eventId, String uri, String ip);
+    EventOutputDto getEventById(long eventId, String uri, String ip);
 
-    List<Event> searchEvents(GetEventRequestForAdmin requests);
+    List<EventOutputDto> searchEventsAdmin(GetEventRequestForAdmin requests);
 
-    List<Event> getEventForAll(GetEventRequestForAll requests, String uri, String ip);
+    List<EventOutputDto> getEventsForAll(GetEventRequestForAll requests, String uri, String ip);
 }

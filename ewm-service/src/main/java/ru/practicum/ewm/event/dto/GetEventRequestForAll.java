@@ -2,7 +2,7 @@ package ru.practicum.ewm.event.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.ewm.event.controller.Sort;
+import ru.practicum.ewm.event.model.Sort;
 
 import java.util.List;
 
@@ -35,18 +35,10 @@ public class GetEventRequestForAll {
         request.setPaid(paid);
         request.setOnlyAvailable(onlyAvailable);
         request.setText(text);
-        if (sort != null) {
-            request.setSort(sort);
-        }
-        if (categories != null) {
-            request.setCategories(categories);
-        }
-        if (rangeStart != null) {
-            request.setRangeStart(rangeStart);
-        }
-        if (rangeStart != null) {
-            request.setRangeEnd(rangeEnd);
-        }
+        request.setSort(sort);
+        request.setCategories(categories);
+        request.setRangeStart(rangeStart);
+        request.setRangeEnd(rangeEnd);
         request.setFrom(from);
         request.setSize(size);
         return request;

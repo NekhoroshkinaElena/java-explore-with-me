@@ -1,75 +1,83 @@
 package ru.practicum.ewm.event.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.dto.EvenShortDtoForUser;
 import ru.practicum.ewm.event.dto.EventOutputDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.dto.NewEventDto;
-import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.service.EventService;
-import ru.practicum.ewm.request.model.RequestDto;
-import ru.practicum.ewm.request.model.RequestMapper;
+import ru.practicum.ewm.request.dto.RequestDto;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
-@RequestMapping("/users/{userId}/events")
 @RequiredArgsConstructor
+@RequestMapping("/users/{userId}/events")
 public class PrivateEventController {
     private final EventService eventService;
 
     @PostMapping
     public EventOutputDto addEvent(@Valid @RequestBody NewEventDto newEventDto,
                                    @PathVariable long userId) {
-        return EventMapper.toEventDtoOutput(eventService.save(newEventDto, userId));
+        log.info("Создание события авторизованным пользователем.");
+        return eventService.save(newEventDto, userId);
     }
 
     @GetMapping("/{eventId}")
     public EventOutputDto getById(@PathVariable long userId, @PathVariable long eventId) {
-        return EventMapper.toEventDtoOutput(eventService.getByIdForUser(userId, eventId));
+        log.info("Получение полной информации о событии добавленном авторизованным пользователем.");
+        return eventService.getByIdForUser(userId, eventId);
     }
 
     @PatchMapping("/{eventId}")
     public EventOutputDto rejectEventById(@PathVariable long userId,
                                           @PathVariable long eventId) {
-        return EventMapper.toEventDtoOutput(eventService.rejectEventUser(userId, eventId));
+        log.info("Отмена события добавленного авторизованным пользователем");
+        return eventService.rejectUser(userId, eventId);
     }
 
     @GetMapping
-    public List<EventOutputDto> getAllEventForUser(@PathVariable long userId,
-                                                   @RequestParam(value = "from", required = false, defaultValue = "0") int from,
-                                                   @RequestParam(value = "size", required = false, defaultValue = "10") int size
+    public List<EvenShortDtoForUser> getAllEventForUser(@PathVariable long userId,
+                                                        @RequestParam(value = "from", required = false,
+                                                                defaultValue = "0") int from,
+                                                        @RequestParam(value = "size", required = false,
+                                                                defaultValue = "10") int size
     ) {
-        return eventService.getAllForUser(userId).stream()
-                .map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
+        log.info("Получение событий, добавленных авторизованным пользователем.");
+        return eventService.getAllForUser(userId, from, size);
     }
 
 
     @PatchMapping
     public EventOutputDto edit(@RequestBody EventShortDto eventShortDto,
                                @PathVariable long userId) {
-        return EventMapper.toEventDtoOutput(eventService.editUser(userId, eventShortDto));
+        log.info("Редактирование события добавленного авторизованным пользователем.");
+        return eventService.editUser(userId, eventShortDto);
     }
 
     @PatchMapping("/{eventId}/requests/{reqId}/confirm")
     public RequestDto confirmRequest(@PathVariable long userId,
                                      @PathVariable long eventId,
                                      @PathVariable long reqId) {
-        return RequestMapper.toRequestDto(eventService.confirmRequestUser(userId, eventId, reqId));
+        log.info("Подтверждение авторизованным пользователем чужой заявки на участие в событии.");
+        return eventService.confirmRequestUser(userId, eventId, reqId);
     }
 
     @PatchMapping("/{eventId}/requests/{reqId}/reject")
     public RequestDto rejectRequest(@PathVariable long userId,
                                     @PathVariable long eventId,
                                     @PathVariable long reqId) {
-        return RequestMapper.toRequestDto(eventService.rejectRequestUser(userId, eventId, reqId));
+        log.info("Отклонение авторизованным пользователем чужой заявки на участие в событии.");
+        return eventService.rejectRequestUser(userId, eventId, reqId);
     }
 
     @GetMapping("/{eventId}/requests")
     public List<RequestDto> getRequests(@PathVariable long userId, @PathVariable long eventId) {
-        return eventService.getAllRequestForEventUser(userId, eventId).stream()
-                .map(RequestMapper::toRequestDto).collect(Collectors.toList());
+        log.info("Получение информации о запросах на участие в событии авторизованного пользователя.");
+        return eventService.getAllRequestForEvent(userId, eventId);
     }
 }

@@ -1,15 +1,14 @@
 package ru.practicum.ewm.category.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewm.category.model.Category;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.category.dto.CategoryDtoOutput;
 import ru.practicum.ewm.category.service.CategoryService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/categories")
@@ -17,12 +16,16 @@ public class PublicCategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAll() {
-        return categoryService.getALl();
+    public List<CategoryDtoOutput> getAll(@RequestParam(value = "from", required = false, defaultValue = "0") int from,
+                                          @RequestParam(value = "size", required = false, defaultValue = "10")
+                                          int size) {
+        log.info("Получение категорий.");
+        return categoryService.getALl(from, size);
     }
 
     @GetMapping("/{catId}")
-    public Category getById(@PathVariable long catId) {
+    public CategoryDtoOutput getById(@PathVariable long catId) {
+        log.info("Получение категории по её идентификатору.");
         return categoryService.getById(catId);
     }
 }

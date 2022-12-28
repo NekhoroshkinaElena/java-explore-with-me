@@ -1,5 +1,6 @@
-package ru.practicum.ewm.user.model;
+package ru.practicum.ewm.category.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,11 +9,10 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-public class UserShortDto {
+@AllArgsConstructor
+public class CategoryDtoInput {
+    private long id;
     @NotNull
     @NotEmpty
     private String name;
-    @NotNull
-    @NotEmpty
-    private String email;
 }

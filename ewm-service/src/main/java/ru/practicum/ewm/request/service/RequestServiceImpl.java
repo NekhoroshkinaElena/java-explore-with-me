@@ -3,17 +3,20 @@ package ru.practicum.ewm.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.event.mapper.TimeMapper;
 import ru.practicum.ewm.event.model.Event;
+import ru.practicum.ewm.event.model.StateEvent;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.exception.ValidationException;
+import ru.practicum.ewm.request.dto.RequestDto;
+import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.Request;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,37 +27,57 @@ public class RequestServiceImpl implements RequestService {
     private final EventRepository eventRepository;
 
     @Override
-    public Request save(long userId, long eventId) {
+    public RequestDto save(long userId, long eventId) {
+        if (requestRepository.findRequestByEventIdAndRequesterId(eventId, userId) != null) {
+            log.error("Нельзя добавить повторный запрос.");
+            throw new ValidationException("Нельзя добавить повторный запрос.");
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> {
-            log.error("пользователя с таким идентификатором не существует");
-            throw new NotFoundException("пользователя с таким идентификатором не существует");
+            log.error("Пользователь с id " + userId + " не найден.");
+            throw new NotFoundException("Пользователь с id " + userId + " не найден.");
         });
         Event event = eventRepository.findById(eventId).orElseThrow(() -> {
-                    log.error("событие не найдено");
-                    throw new NotFoundException("событие не найдено");
+                    log.error("Событие с id " + eventId + " не найдено.");
+                    throw new NotFoundException("Событие с id " + eventId + " не найдено.");
                 }
         );
-        Request request = new Request(0L, TimeMapper.timeToString(LocalDateTime.now()),
-                event, user, "PENDING");
-        return requestRepository.save(request);
+        if (event.getInitiator().getId() == userId) {
+            log.error("Инициатор события не может добавить запрос на участие в своём событии.");
+            throw new ValidationException("Инициатор события не может добавить запрос на участие в своём событии.");
+        }
+        if (!event.getState().equals(StateEvent.PUBLISHED)) {
+            log.error("Нельзя участвовать в неопубликованном событии.");
+            throw new ValidationException("Нельзя участвовать в неопубликованном событии.");
+        }
+        if (event.getParticipantLimit() != 0 && requestRepository
+                .findAllByEventId(eventId).size() >= event.getParticipantLimit()) {
+            log.error("У событи достигнут лимит запросов на участие.");
+            throw new ValidationException("У событи достигнут лимит запросов на участие.");
+        }
+        Request request = RequestMapper.toRequest(user, event);
+        if (!event.getRequestModeration()) {
+            request.setStatus("CONFIRMED");
+        }
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override
-    public Request cancel(long userId, long requestId) {
+    public RequestDto cancel(long userId, long requestId) {
         Request request = requestRepository.findById(requestId).orElseThrow(() -> {
-            log.error("заявка не найдена");
-            throw new NotFoundException("заявка не найдена");
+            log.error("Заявка с id" + requestId + " не найдена.");
+            throw new NotFoundException("Заявка с id" + requestId + " не найдена.");
         });
         if (request.getRequester().getId() == userId) {
             request.setStatus("CANCELED");
-            return request;
+            return RequestMapper.toRequestDto(request);
         } else {
-            throw new NotFoundException("упс, какие-то проблемки");
+            throw new NotFoundException("Вы не можете отменить заявку.");
         }
     }
 
     @Override
-    public List<Request> getAllRequestUser(long userId) {
-        return requestRepository.findAllByRequesterId(userId);
+    public List<RequestDto> getAllRequestUser(long userId) {
+        return requestRepository.findAllByRequesterId(userId).stream()
+                .map(RequestMapper::toRequestDto).collect(Collectors.toList());
     }
 }

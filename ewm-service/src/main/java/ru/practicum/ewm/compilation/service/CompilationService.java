@@ -1,21 +1,21 @@
 package ru.practicum.ewm.compilation.service;
 
-import ru.practicum.ewm.compilation.model.Compilation;
-import ru.practicum.ewm.compilation.model.CompilationInputDto;
+import ru.practicum.ewm.compilation.dto.CompilationInputDto;
+import ru.practicum.ewm.compilation.dto.CompilationOutputDto;
 
 import java.util.List;
 
 public interface CompilationService {
 
-    Compilation postCompilation(CompilationInputDto compilation);
+    CompilationOutputDto post(CompilationInputDto compilation);
 
-    void deleteCompilation(long id);
+    void delete(long id);
 
     void deleteEventFromCompilation(long compId, long eventId);
 
-    Compilation getById(long id);
+    CompilationOutputDto getById(long id);
 
-    List<Compilation> getAll(Boolean pinned, int from, int size);
+    List<CompilationOutputDto> getAll(Boolean pinned, int from, int size);
 
     void addEvent(long compId, long eventId);
 

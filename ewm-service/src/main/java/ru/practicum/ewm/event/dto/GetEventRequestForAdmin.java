@@ -26,21 +26,11 @@ public class GetEventRequestForAdmin {
                                              int size
     ) {
         GetEventRequestForAdmin request = new GetEventRequestForAdmin();
-        if (users != null) {
-            request.setUsers(users);
-        }
-        if (states != null) {
-            request.setStates(states);
-        }
-        if (categories != null) {
-            request.setCategories(categories);
-        }
-        if (rangeStart != null) {
-            request.setRangeStart(rangeStart);
-        }
-        if (rangeEnd != null) {
-            request.setRangeEnd(rangeEnd);
-        }
+        request.setUsers(users);
+        request.setStates(states);
+        request.setCategories(categories);
+        request.setRangeStart(rangeStart);
+        request.setRangeEnd(rangeEnd);
         request.setFrom(from);
         request.setSize(size);
         return request;

@@ -1,19 +1,20 @@
 package ru.practicum.ewm.category.service;
 
-import ru.practicum.ewm.category.model.Category;
-import ru.practicum.ewm.category.model.CategoryDtoInput;
+import ru.practicum.ewm.category.dto.CategoryDtoInput;
+import ru.practicum.ewm.category.dto.CategoryDtoOutput;
+import ru.practicum.ewm.category.dto.NewCategoryDto;
 
 import java.util.List;
 
 public interface CategoryService {
 
-    Category save(Category category);
+    CategoryDtoOutput save(NewCategoryDto category);
 
-    Category update(CategoryDtoInput categoryDtoInput);
+    CategoryDtoOutput update(CategoryDtoInput categoryDtoInput);
 
     void delete(long id);
 
-    List<Category> getALl();
+    List<CategoryDtoOutput> getALl(int from, int size);
 
-    Category getById(long id);
+    CategoryDtoOutput getById(long id);
 }

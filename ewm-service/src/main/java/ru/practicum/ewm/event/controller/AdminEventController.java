@@ -1,17 +1,17 @@
 package ru.practicum.ewm.event.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventOutputDto;
 import ru.practicum.ewm.event.dto.GetEventRequestForAdmin;
 import ru.practicum.ewm.event.dto.NewEventDto;
-import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.StateEvent;
 import ru.practicum.ewm.event.service.EventService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("admin/events")
@@ -19,22 +19,25 @@ public class AdminEventController {
     private final EventService eventService;
 
     @PatchMapping("/{eventId}/publish")
-    public EventOutputDto publishEvent(@PathVariable long eventId) {
-        return EventMapper.toEventDtoOutput(eventService.publish(eventId));
+    public EventOutputDto publish(@PathVariable long eventId) {
+        log.info("Публикация события администратором.");
+        return eventService.publish(eventId);
     }
 
     @PatchMapping("/{eventId}/reject")
-    public EventOutputDto rejectEvent(@PathVariable long eventId) {
-        return EventMapper.toEventDtoOutput(eventService.rejectAdmin(eventId));
+    public EventOutputDto reject(@PathVariable long eventId) {
+        log.info("Отклонение события администратором.");
+        return eventService.rejectAdmin(eventId);
     }
 
     @PutMapping("{eventId}")
     public EventOutputDto edit(@PathVariable long eventId, @RequestBody NewEventDto newEventDto) {
-        return EventMapper.toEventDtoOutput(eventService.editAdmin(eventId, newEventDto));
+        log.info("Редактирование события администратором администратором.");
+        return eventService.editAdmin(eventId, newEventDto);
     }
 
     @GetMapping
-    public List<EventOutputDto> searchEvent(@RequestParam(value = "users", required = false) List<Long> users,
+    public List<EventOutputDto> search(@RequestParam(value = "users", required = false) List<Long> users,
                                             @RequestParam(value = "states", required = false) List<StateEvent> states,
                                             @RequestParam(value = "categories", required = false) List<Long> categories,
                                             @RequestParam(value = "rangeStart", required = false) String rangeStart,
@@ -43,7 +46,8 @@ public class AdminEventController {
                                             int from,
                                             @RequestParam(value = "size", required = false, defaultValue = "10")
                                             int size) {
-        return eventService.searchEvents(GetEventRequestForAdmin.of(users, states, categories, rangeStart, rangeEnd, from, size))
-                .stream().map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
+        log.info("Поиск событий администратором.");
+        return eventService.searchEventsAdmin(GetEventRequestForAdmin.of(users, states, categories, rangeStart,
+                rangeEnd, from, size));
     }
 }
