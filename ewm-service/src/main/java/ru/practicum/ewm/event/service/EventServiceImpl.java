@@ -10,7 +10,6 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.event.client.EventClient;
 import ru.practicum.ewm.event.dto.*;
-import ru.practicum.ewm.event.location.LocationRepository;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.mapper.TimeMapper;
 import ru.practicum.ewm.event.model.Event;
@@ -23,12 +22,16 @@ import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.request.dto.RequestDto;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.Request;
+import ru.practicum.ewm.request.model.RequestStatus;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,17 +41,13 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
     private final RequestRepository requestRepository;
     private final EventClient eventClient;
 
     @Override
     public EventOutputDto save(NewEventDto newEventDto, long userId) {
-        Event event = EventMapper.toEvent(newEventDto);
         timeValidate(newEventDto.getEventDate());
-        locationRepository.save(newEventDto.getLocation());
-        event.setCategory(getCategory(newEventDto.getCategory()));
-        event.setInitiator(getUser(userId));
+        Event event = EventMapper.createEvent(newEventDto, getUser(userId), getCategory(newEventDto.getCategory()));
         return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
@@ -65,8 +64,7 @@ public class EventServiceImpl implements EventService {
         }
         event.setState(StateEvent.PUBLISHED);
         event.setPublishedOn(LocalDateTime.now());
-        eventRepository.save(event);
-        return EventMapper.toEventDtoOutput(event);
+        return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
     @Override
@@ -77,38 +75,43 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException("Нельзя отменить опубликованное событие.");
         }
         event.setState(StateEvent.CANCELED);
-        return EventMapper.toEventDtoOutput(event);
+        return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
     @Override
-    public EventOutputDto editAdmin(long eventId, NewEventDto newEventDto) {
+    public EventOutputDto editAdmin(long eventId, EventDtoForEditAdmin eventDto) {
         Event event = getEvent(eventId);
-        if (!newEventDto.getAnnotation().isEmpty()) {
-            event.setAnnotation(newEventDto.getAnnotation());
+        if (!eventDto.getAnnotation().isEmpty()) {
+            event.setAnnotation(eventDto.getAnnotation());
         }
-        if (newEventDto.getCategory() != 0) {
-            event.setCategory(getCategory(newEventDto.getCategory()));
+        if (eventDto.getCategory() != 0) {
+            event.setCategory(getCategory(eventDto.getCategory()));
         }
-        if (!newEventDto.getDescription().isEmpty()) {
-            event.setDescription(newEventDto.getDescription());
+        if (!eventDto.getDescription().isEmpty()) {
+            event.setDescription(eventDto.getDescription());
         }
-        if (!newEventDto.getEventDate().isEmpty() || newEventDto.getEventDate() != null) {
-            event.setEventDate(TimeMapper.stringToTime(newEventDto.getEventDate()));
+        if (eventDto.getEventDate() != null || !eventDto.getEventDate().isEmpty()) {
+            event.setEventDate(TimeMapper.stringToTime(eventDto.getEventDate()));
         }
-        if (newEventDto.getLocation() != null) {
-            event.setLocation(newEventDto.getLocation());
+        if (eventDto.getLocation() != null) {
+            if (eventDto.getLocation().getLon() != null) {
+                event.setLon(eventDto.getLocation().getLon());
+            }
+            if (eventDto.getLocation().getLat() != null) {
+                event.setLat(eventDto.getLocation().getLat());
+            }
         }
-        event.setPaid(newEventDto.getPaid());
-        if (newEventDto.getParticipantLimit() != 0) {
-            event.setParticipantLimit(newEventDto.getParticipantLimit());
+        event.setPaid(eventDto.getPaid());
+        if (eventDto.getParticipantLimit() != 0) {
+            event.setParticipantLimit(eventDto.getParticipantLimit());
         }
-        if (newEventDto.getRequestModeration() != null) {
-            event.setRequestModeration(newEventDto.getRequestModeration());
+        if (eventDto.getRequestModeration() != null) {
+            event.setRequestModeration(eventDto.getRequestModeration());
         }
-        if (!newEventDto.getTitle().isEmpty()) {
-            event.setTitle(newEventDto.getTitle());
+        if (!eventDto.getTitle().isEmpty()) {
+            event.setTitle(eventDto.getTitle());
         }
-        return EventMapper.toEventDtoOutput(event);
+        return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
     @Override
@@ -142,7 +145,7 @@ public class EventServiceImpl implements EventService {
         if (!eventShortDto.getTitle().isEmpty()) {
             event.setTitle(eventShortDto.getTitle());
         }
-        return EventMapper.toEventDtoOutput(event);
+        return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
     @Override
@@ -164,57 +167,62 @@ public class EventServiceImpl implements EventService {
         Event event = getEvent(eventId);
         validateInitiator(event.getInitiator().getId(), userId);
         if (event.getState().equals(StateEvent.PUBLISHED)) {
-            log.error("Нельзя отменить опубликованное событие");
-            throw new ValidationException("Нельзя отменить опубликованное событие");
+            log.error("Нельзя отменить опубликованное событие.");
+            throw new ValidationException("Нельзя отменить опубликованное событие.");
         }
         event.setState(StateEvent.CANCELED);
-        return EventMapper.toEventDtoOutput(event);
+        return EventMapper.toEventDtoOutput(eventRepository.save(event));
     }
 
     @Override
     public RequestDto confirmRequestUser(long userId, long eventId, long reqId) {
         Event event = getEvent(eventId);
         Request request = getRequest(reqId);
-        getUser(userId);
+        if (event.getInitiator().getId() != userId) {
+            log.error("Вы не можете подтвердить заявку, так как не являетесь инициатором события.");
+            throw new ValidationException("Вы не можете подтвердить заявку, так как не являетесь инициатором события.");
+        }
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
             log.error("Подтверждение заявок на участие в этом событии не требуется.");
             throw new ValidationException("Подтверждение заявок на участие в этом событии не требуется.");
         }
         if (event.getParticipantLimit() <= event.getConfirmedRequest()) {
             log.info("Заявка на участие в событии отклонена, так как превышен лимит заявок.");
-            request.setStatus("CANCELED");
+            request.setStatus(RequestStatus.CANCELED);
+        } else {
+            request.setStatus(RequestStatus.CONFIRMED);
         }
-        request.setStatus("CONFIRMED");
-        return RequestMapper.toRequestDto(request);
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override
     public RequestDto rejectRequestUser(long userId, long eventId, long reqId) {
         Request request = getRequest(reqId);
-        getUser(userId);
-        getEvent(eventId);
-        request.setStatus("REJECTED");
-        return RequestMapper.toRequestDto(request);
+        Event event = getEvent(eventId);
+        if (event.getInitiator().getId() != userId) {
+            log.error("Вы не можете отклонить заявку, так как не являетесь инициатором события.");
+            throw new ValidationException("Вы не можете отклонить заявку, так как не являетесь инициатором события.");
+        }
+        request.setStatus(RequestStatus.REJECTED);
+        return RequestMapper.toRequestDto(requestRepository.save(request));
     }
 
     @Override
     public List<RequestDto> getAllRequestForEvent(long userId, long eventId) {
         Event event = getEvent(eventId);
-        getUser(userId);
         validateInitiator(event.getInitiator().getId(), userId);
         return requestRepository.findAllByEventId(eventId).stream()
                 .map(RequestMapper::toRequestDto).collect(Collectors.toList());
     }
 
     @Override
-    public EventOutputDto getEventById(long eventId, String uri, String ip) {
-        eventClient.saveRequestInStatistic(uri, ip);
-        Event event = getEvent(eventId);
-        if (!event.getState().equals(StateEvent.PUBLISHED)) {
-            log.error("Нельзя получить информацию о неопубликованном событии.");
-            throw new ValidationException("Нельзя получить информацию о неопубликованном событии.");
+    public EventOutputDto getEventById(long eventId) {
+        Event event = eventRepository.findEventByIdAndState(eventId, StateEvent.PUBLISHED);
+        if (event == null) {
+            log.error("Событие с id " + eventId + " не найдено.");
+            throw new NotFoundException("Событие с id " + eventId + " не найдено.");
         }
-        event.setViews(event.getViews() + 1);
+        event.setViews(eventClient.getViewsForEvent(eventId));
         eventRepository.save(event);
         return EventMapper.toEventDtoOutput(event);
     }
@@ -238,19 +246,13 @@ public class EventServiceImpl implements EventService {
         if (request.getRangeEnd() != null) {
             predicates.add(event.eventDate.before(TimeMapper.stringToTime(request.getRangeEnd())));
         }
-        Iterable<Event> eventsIterable = eventRepository
-                .findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
-                        PageRequest.of(request.getFrom(), request.getSize()));
-        List<Event> events = new ArrayList<>();
-        for (Event e : eventsIterable) {
-            events.add(e);
-        }
-        return events.stream().map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
+        return eventRepository.findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
+                        PageRequest.of(request.getFrom(), request.getSize())).toList().stream()
+                .map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
     }
 
     @Override
-    public List<EventOutputDto> getEventsForAll(GetEventRequestForAll request, String uri, String ip) {
-        eventClient.saveRequestInStatistic(uri, ip);
+    public List<EventOutputDto> getEventsForAll(GetEventRequestForAll request) {
         QEvent event = QEvent.event;
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(event.state.eq(StateEvent.PUBLISHED));
@@ -272,24 +274,23 @@ public class EventServiceImpl implements EventService {
             predicates.add(event.eventDate.before(TimeMapper.stringToTime(request.getRangeEnd())));
         }
         if (request.getOnlyAvailable()) {
-            predicates.add(event.participantLimit.eq(0));
+            predicates.add(event.participantLimit.goe(event.confirmedRequest));
         }
-
-        Iterable<Event> eventsIterable = eventRepository
+        List<EventOutputDto> eventsIterable = eventRepository
                 .findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
-                        PageRequest.of(request.getFrom(), request.getSize()));
-        List<EventOutputDto> events = new LinkedList<>();
-        for (Event e : eventsIterable) {
-            events.add(EventMapper.toEventDtoOutput(e));
-        }
+                        PageRequest.of(request.getFrom(), request.getSize())).stream()
+                .map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
+
         if (request.getSort() != null) {
             if (request.getSort().equals(Sort.VIEWS)) {
-                events.sort(Comparator.comparingInt(EventOutputDto::getViews).reversed());
+                return eventsIterable.stream().sorted(Comparator.comparingInt(EventOutputDto::getViews).reversed())
+                        .collect(Collectors.toList());
             } else {
-                events.sort((Comparator.comparing(EventOutputDto::getEventDate)));
+                return eventsIterable.stream().sorted(Comparator.comparing(EventOutputDto::getEventDate))
+                        .collect(Collectors.toList());
             }
         }
-        return events;
+        return eventsIterable;
     }
 
     private Category getCategory(long categoryId) {
@@ -331,9 +332,9 @@ public class EventServiceImpl implements EventService {
     private void validateInitiator(long initiatorId, long userId) {
         if (initiatorId != userId) {
             log.error("Вы не можете выполнять действия над событием (редактировать, отменять, получать " +
-                    "подробную информацию о событии) так как не являеесь его создателем.");
+                    "подробную информацию о событии) так как не являетесь его создателем.");
             throw new NotFoundException("Вы не можете выполнять действия над событием (редактировать, отменять," +
-                    " получать подробную информацию о событии) так как не являеесь его создателем.");
+                    " получать подробную информацию о событии) так как не являетесь его создателем.");
         }
     }
 }
