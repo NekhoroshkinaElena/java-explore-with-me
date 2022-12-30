@@ -25,5 +25,6 @@ public class Request {
     private Event event;
     @ManyToOne
     private User requester;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private RequestStatus status;
 }

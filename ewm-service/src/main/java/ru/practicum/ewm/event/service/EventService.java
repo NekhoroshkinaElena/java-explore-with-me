@@ -13,7 +13,7 @@ public interface EventService {
 
     EventOutputDto rejectAdmin(long eventId);
 
-    EventOutputDto editAdmin(long eventId, NewEventDto newEventDto);
+    EventOutputDto editAdmin(long eventId, EventDtoForEditAdmin newEventDto);
 
     EventOutputDto editUser(long userId, EventShortDto eventShortDto);
 
@@ -29,9 +29,9 @@ public interface EventService {
 
     List<RequestDto> getAllRequestForEvent(long userId, long eventId);
 
-    EventOutputDto getEventById(long eventId, String uri, String ip);
+    EventOutputDto getEventById(long eventId);
 
     List<EventOutputDto> searchEventsAdmin(GetEventRequestForAdmin requests);
 
-    List<EventOutputDto> getEventsForAll(GetEventRequestForAll requests, String uri, String ip);
+    List<EventOutputDto> getEventsForAll(GetEventRequestForAll requests);
 }

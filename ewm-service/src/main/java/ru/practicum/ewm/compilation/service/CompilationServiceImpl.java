@@ -13,7 +13,6 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.exception.NotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,26 +25,21 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationOutputDto post(CompilationInputDto compilationInputDto) {
-        List<Event> events = new ArrayList<>();
-        for (Long i : compilationInputDto.getEvents()) {
-            events.add(getEvent(i));
-        }
-        Compilation compilation = CompilationMapper.toCompilation(compilationInputDto);
+        List<Event> events = eventRepository.findAllById(compilationInputDto.getEvents());
+        Compilation compilation = CompilationMapper.createCompilation(compilationInputDto, events);
         compilation.setEvents(events);
         return CompilationMapper.toCompilationOutputDto(compilationRepository.save(compilation));
     }
 
     @Override
     public void delete(long id) {
-        getCompilation(id);
         compilationRepository.deleteById(id);
     }
 
     @Override
     public void deleteEventFromCompilation(long compId, long eventId) {
         Compilation compilation = getCompilation(compId);
-        Event event = getEvent(eventId);
-        compilation.getEvents().remove(event);
+        compilation.getEvents().removeIf(event -> event.getId() == eventId);
         compilationRepository.save(compilation);
     }
 
@@ -63,8 +57,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public void addEvent(long compId, long eventId) {
         Compilation compilation = getCompilation(compId);
-        Event event = getEvent(eventId);
-        compilation.getEvents().add(event);
+        compilation.getEvents().add(getEvent(eventId));
         compilationRepository.save(compilation);
     }
 

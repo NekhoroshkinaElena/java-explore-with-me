@@ -5,5 +5,4 @@ import ru.practicum.ewm.category.model.Category;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    Category findAllByName(String name);
 }

@@ -1,22 +1,21 @@
 package ru.practicum.ewm.event.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.category.model.Category;
-import ru.practicum.ewm.event.location.Location;
 import ru.practicum.ewm.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-//@Getter
-//@Setter
-@Entity(name = "EVENTS")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity(name = "EVENTS")
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,13 +33,14 @@ public class Event {
     @Column(name = "description")
     @Length(min = 20, max = 7000)
     private String description;
-
     @Column(name = "eventDate")
     private LocalDateTime eventDate;
     @ManyToOne
     private User initiator;
-    @OneToOne
-    private Location location;
+    @Column(name = "lat")
+    private Double lat;
+    @Column(name = "lon")
+    private Double lon;
     @Column(name = "paid")
     private Boolean paid;
     @Column(name = "participantLimit")

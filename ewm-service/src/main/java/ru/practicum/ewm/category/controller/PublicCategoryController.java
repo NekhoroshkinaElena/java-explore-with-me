@@ -20,7 +20,7 @@ public class PublicCategoryController {
                                           @RequestParam(value = "size", required = false, defaultValue = "10")
                                           int size) {
         log.info("Получение категорий.");
-        return categoryService.getALl(from, size);
+        return categoryService.getAll(from, size);
     }
 
     @GetMapping("/{catId}")

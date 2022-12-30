@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.ewm.request.model.RequestStatus;
 
 @Getter
 @Setter
@@ -13,6 +14,6 @@ public class RequestDto {
     private long id;
     private long requester;
     private long event;
-    private String status;
+    private RequestStatus status;
     private String created;
 }

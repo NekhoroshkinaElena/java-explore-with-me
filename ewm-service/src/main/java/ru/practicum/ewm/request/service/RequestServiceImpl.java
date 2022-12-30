@@ -11,6 +11,7 @@ import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.request.dto.RequestDto;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.Request;
+import ru.practicum.ewm.request.model.RequestStatus;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
@@ -50,13 +51,13 @@ public class RequestServiceImpl implements RequestService {
             throw new ValidationException("Нельзя участвовать в неопубликованном событии.");
         }
         if (event.getParticipantLimit() != 0 && requestRepository
-                .findAllByEventId(eventId).size() >= event.getParticipantLimit()) {
-            log.error("У событи достигнут лимит запросов на участие.");
-            throw new ValidationException("У событи достигнут лимит запросов на участие.");
+                .countRequestByEventId(eventId) >= event.getParticipantLimit()) {
+            log.error("У события достигнут лимит запросов на участие.");
+            throw new ValidationException("У события достигнут лимит запросов на участие.");
         }
-        Request request = RequestMapper.toRequest(user, event);
+        Request request = RequestMapper.createRequest(user, event);
         if (!event.getRequestModeration()) {
-            request.setStatus("CONFIRMED");
+            request.setStatus(RequestStatus.CONFIRMED);
         }
         return RequestMapper.toRequestDto(requestRepository.save(request));
     }
@@ -68,7 +69,8 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException("Заявка с id" + requestId + " не найдена.");
         });
         if (request.getRequester().getId() == userId) {
-            request.setStatus("CANCELED");
+            request.setStatus(RequestStatus.CANCELED);
+            requestRepository.save(request);
             return RequestMapper.toRequestDto(request);
         } else {
             throw new NotFoundException("Вы не можете отменить заявку.");

@@ -3,7 +3,7 @@ package ru.practicum.ewm.event.dto;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
-import ru.practicum.ewm.event.location.Location;
+import ru.practicum.ewm.event.location.LocationDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -18,11 +18,10 @@ public class NewEventDto {
     private long category;
     @Length(min = 20, max = 7000)
     private String description;
-    @NotNull
     @NotEmpty
     private String eventDate;
     @NotNull
-    private Location location;
+    private LocationDto location;
     private Boolean paid;
     private int participantLimit;
     private Boolean requestModeration;

@@ -7,19 +7,22 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.event.dto.EvenShortDtoForUser;
 import ru.practicum.ewm.event.dto.EventOutputDto;
 import ru.practicum.ewm.event.dto.NewEventDto;
+import ru.practicum.ewm.event.location.LocationDto;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.StateEvent;
 import ru.practicum.ewm.user.dto.UserShortDto;
+import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
 
 @UtilityClass
 public class EventMapper {
 
-    public static Event toEvent(NewEventDto newEventDto) {
-        return new Event(0L, newEventDto.getAnnotation(), new Category(), 0, LocalDateTime.now(),
+    public static Event createEvent(NewEventDto newEventDto, User user, Category category) {
+        return new Event(0L, newEventDto.getAnnotation(), category, 0, LocalDateTime.now(),
                 newEventDto.getDescription(), TimeMapper.stringToTime(newEventDto.getEventDate()),
-                null, newEventDto.getLocation(), newEventDto.getPaid(), newEventDto.getParticipantLimit(),
+                user, newEventDto.getLocation().getLat(), newEventDto.getLocation().getLon(),
+                newEventDto.getPaid(), newEventDto.getParticipantLimit(),
                 null, newEventDto.getRequestModeration(), StateEvent.PENDING,
                 newEventDto.getTitle(), 0);
     }
@@ -29,11 +32,10 @@ public class EventMapper {
                 CategoryMapper.toCategoryDtoOutput(event.getCategory()),
                 event.getConfirmedRequest(), TimeMapper.timeToString(event.getCreatedOn()),
                 event.getDescription(), TimeMapper.timeToString(event.getEventDate()), new UserShortDto(
-                event.getInitiator().getId(), event.getInitiator().getName()), event.getLocation(),
-                event.getPaid(), event.getParticipantLimit(),
+                event.getInitiator().getId(), event.getInitiator().getName()), new LocationDto(event.getLat(),
+                event.getLon()), event.getPaid(), event.getParticipantLimit(),
                 event.getPublishedOn() != null ? TimeMapper.timeToString(event.getPublishedOn()) : "",
-                event.getRequestModeration(),
-                event.getState(), event.getTitle(), event.getViews());
+                event.getRequestModeration(), event.getState(), event.getTitle(), event.getViews());
     }
 
     public static EvenShortDtoForUser toEventDtoForUser(Event event) {

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -43,10 +44,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         Iterable<Statistics> requestIterable = statisticRepository
                 .findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)));
 
-        List<Statistics> statistics = new ArrayList<>();
-        for (Statistics e : requestIterable) {
-            statistics.add(e);
-        }
+        List<Statistics> statistics = StreamSupport.stream(requestIterable.spliterator(), false)
+                .collect(Collectors.toList());
+
         if (getRequestForStatistics.getUnique()) {
             statistics = statistics.stream().distinct().collect(Collectors.toList());
         }
@@ -58,6 +58,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private int getHits(Statistics statistics) {
-        return statisticRepository.countAllByApp(statistics.getApp());
+        return statisticRepository.countAllByUri(statistics.getUri());
     }
 }

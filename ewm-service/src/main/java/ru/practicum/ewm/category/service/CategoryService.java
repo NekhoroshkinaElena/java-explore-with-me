@@ -14,7 +14,7 @@ public interface CategoryService {
 
     void delete(long id);
 
-    List<CategoryDtoOutput> getALl(int from, int size);
+    List<CategoryDtoOutput> getAll(int from, int size);
 
     CategoryDtoOutput getById(long id);
 }

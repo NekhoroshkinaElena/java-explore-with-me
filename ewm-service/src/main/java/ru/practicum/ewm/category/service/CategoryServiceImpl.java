@@ -27,31 +27,38 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDtoOutput save(NewCategoryDto newCategoryDto) {
-        categoryValidate(newCategoryDto.getName());
-        return CategoryMapper.toCategoryDtoOutput(
-                categoryRepository.save(CategoryMapper.toCategory(newCategoryDto)));
+        try {
+            return CategoryMapper.toCategoryDtoOutput(
+                    categoryRepository.save(CategoryMapper.createCategory(newCategoryDto)));
+        } catch (Exception ex) {
+            log.error("Категория с таким названием уже существует.");
+            throw new AlreadyExistsException("Категория с таким названием уже существует.");
+        }
     }
 
     @Override
     public CategoryDtoOutput update(CategoryDtoInput categoryDtoInput) {
-        categoryValidate(categoryDtoInput.getName());
-        Category category = getCategory(categoryDtoInput.getId());
-        category.setName(categoryDtoInput.getName());
-        return CategoryMapper.toCategoryDtoOutput(category);
+        Category categoryUpdate = getCategory(categoryDtoInput.getId());
+        categoryUpdate.setName(categoryDtoInput.getName());
+        try {
+            return CategoryMapper.toCategoryDtoOutput(categoryRepository.save(categoryUpdate));
+        } catch (Exception ex) {
+            log.error("Категория с таким названием уже существует.");
+            throw new AlreadyExistsException("Категория с таким названием уже существует.");
+        }
     }
 
     @Override
     public void delete(long id) {
-        Category category = getCategory(id);
         if (eventRepository.findEventByCategoryId(id) != null) {
             log.error("С категорией не должно быть связано ни одного события.");
             throw new ValidationException("С категорией не должно быть связано ни одного события.");
         }
-        categoryRepository.delete(category);
+        categoryRepository.deleteById(id);
     }
 
     @Override
-    public List<CategoryDtoOutput> getALl(int from, int size) {
+    public List<CategoryDtoOutput> getAll(int from, int size) {
         return categoryRepository.findAll(PageRequest.of(from, size)).stream()
                 .map(CategoryMapper::toCategoryDtoOutput).collect(Collectors.toList());
     }
@@ -66,12 +73,5 @@ public class CategoryServiceImpl implements CategoryService {
             log.error("Категория с id " + catId + " не найдена.");
             return new NotFoundException("Вещь с id " + catId + " не найдена.");
         });
-    }
-
-    private void categoryValidate(String name) {
-        if (categoryRepository.findAllByName(name) != null) {
-            log.error("Категория с таким названием уже существует.");
-            throw new AlreadyExistsException("Категория с таким названием уже существует.");
-        }
     }
 }
