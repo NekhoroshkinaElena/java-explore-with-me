@@ -2,6 +2,7 @@ package ru.practicum.ewm.category.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.category.dto.CategoryDtoInput;
@@ -30,9 +31,9 @@ public class CategoryServiceImpl implements CategoryService {
         try {
             return CategoryMapper.toCategoryDtoOutput(
                     categoryRepository.save(CategoryMapper.createCategory(newCategoryDto)));
-        } catch (Exception ex) {
-            log.error("Категория с таким названием уже существует.");
-            throw new AlreadyExistsException("Категория с таким названием уже существует.");
+        } catch (DataIntegrityViolationException ex) {
+                log.error("Ошибка в данных:" + ex.getMessage());
+                throw new AlreadyExistsException("Ошибка в данных");
         }
     }
 
@@ -42,9 +43,9 @@ public class CategoryServiceImpl implements CategoryService {
         categoryUpdate.setName(categoryDtoInput.getName());
         try {
             return CategoryMapper.toCategoryDtoOutput(categoryRepository.save(categoryUpdate));
-        } catch (Exception ex) {
-            log.error("Категория с таким названием уже существует.");
-            throw new AlreadyExistsException("Категория с таким названием уже существует.");
+        } catch (DataIntegrityViolationException ex) {
+            log.error("Ошибка в данных:" + ex.getMessage());
+            throw new AlreadyExistsException("Ошибка в данных");
         }
     }
 
@@ -60,7 +61,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDtoOutput> getAll(int from, int size) {
         return categoryRepository.findAll(PageRequest.of(from, size)).stream()
-                .map(CategoryMapper::toCategoryDtoOutput).collect(Collectors.toList());
+                .map(CategoryMapper::toCategoryDtoOutput)
+                .collect(Collectors.toList());
     }
 
     @Override

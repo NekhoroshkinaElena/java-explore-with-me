@@ -34,7 +34,9 @@ public class UserServiceImpl implements UserService {
             return userRepository.findAll(PageRequest.of(from, size))
                     .stream().map(UserMapper::toUserDto).collect(Collectors.toList());
         } else {
-            return userRepository.findAllById(ids).stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+            return userRepository.findAllById(ids).stream()
+                    .map(UserMapper::toUserDto)
+                    .collect(Collectors.toList());
         }
     }
 

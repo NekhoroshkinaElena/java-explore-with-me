@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -90,7 +91,7 @@ public class EventServiceImpl implements EventService {
         if (!eventDto.getDescription().isEmpty()) {
             event.setDescription(eventDto.getDescription());
         }
-        if (eventDto.getEventDate() != null || !eventDto.getEventDate().isEmpty()) {
+        if (eventDto.getEventDate() != null && !eventDto.getEventDate().isEmpty()) {
             event.setEventDate(TimeMapper.stringToTime(eventDto.getEventDate()));
         }
         if (eventDto.getLocation() != null) {
@@ -152,7 +153,8 @@ public class EventServiceImpl implements EventService {
     public List<EvenShortDtoForUser> getAllForUser(long userId, int from, int size) {
         getUser(userId);
         return eventRepository.findAllByInitiatorId(userId, PageRequest.of(from / size, size)).stream()
-                .map(EventMapper::toEventDtoForUser).collect(Collectors.toList());
+                .map(EventMapper::toEventDtoForUser)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -212,7 +214,8 @@ public class EventServiceImpl implements EventService {
         Event event = getEvent(eventId);
         validateInitiator(event.getInitiator().getId(), userId);
         return requestRepository.findAllByEventId(eventId).stream()
-                .map(RequestMapper::toRequestDto).collect(Collectors.toList());
+                .map(RequestMapper::toRequestDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -247,8 +250,11 @@ public class EventServiceImpl implements EventService {
             predicates.add(event.eventDate.before(TimeMapper.stringToTime(request.getRangeEnd())));
         }
         return eventRepository.findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
-                        PageRequest.of(request.getFrom(), request.getSize())).toList().stream()
-                .map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
+                        PageRequest.of(request.getFrom(), request.getSize()))
+                .toList()
+                .stream()
+                .map(EventMapper::toEventDtoOutput)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -274,23 +280,22 @@ public class EventServiceImpl implements EventService {
             predicates.add(event.eventDate.before(TimeMapper.stringToTime(request.getRangeEnd())));
         }
         if (request.getOnlyAvailable()) {
-            predicates.add(event.participantLimit.goe(event.confirmedRequest));
+            predicates.add(event.participantLimit.gt(event.confirmedRequest));
         }
-        List<EventOutputDto> eventsIterable = eventRepository
-                .findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
-                        PageRequest.of(request.getFrom(), request.getSize())).stream()
-                .map(EventMapper::toEventDtoOutput).collect(Collectors.toList());
 
+        Stream<EventOutputDto> eventsStream = eventRepository
+                .findAll(Objects.requireNonNull(ExpressionUtils.allOf(predicates)),
+                        PageRequest.of(request.getFrom(), request.getSize()))
+                .stream()
+                .map(EventMapper::toEventDtoOutput);
         if (request.getSort() != null) {
             if (request.getSort().equals(Sort.VIEWS)) {
-                return eventsIterable.stream().sorted(Comparator.comparingInt(EventOutputDto::getViews).reversed())
-                        .collect(Collectors.toList());
+                eventsStream = eventsStream.sorted(Comparator.comparingInt(EventOutputDto::getViews).reversed());
             } else {
-                return eventsIterable.stream().sorted(Comparator.comparing(EventOutputDto::getEventDate))
-                        .collect(Collectors.toList());
+                eventsStream = eventsStream.sorted(Comparator.comparing(EventOutputDto::getEventDate));
             }
         }
-        return eventsIterable;
+        return eventsStream.collect(Collectors.toList());
     }
 
     private Category getCategory(long categoryId) {

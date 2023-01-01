@@ -51,7 +51,8 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationOutputDto> getAll(Boolean pinned, int from, int size) {
         return compilationRepository.findAllByPinned(pinned, PageRequest.of(from, size)).stream()
-                .map(CompilationMapper::toCompilationOutputDto).collect(Collectors.toList());
+                .map(CompilationMapper::toCompilationOutputDto)
+                .collect(Collectors.toList());
     }
 
     @Override

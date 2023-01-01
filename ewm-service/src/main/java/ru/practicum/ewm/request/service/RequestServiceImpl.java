@@ -80,6 +80,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<RequestDto> getAllRequestUser(long userId) {
         return requestRepository.findAllByRequesterId(userId).stream()
-                .map(RequestMapper::toRequestDto).collect(Collectors.toList());
+                .map(RequestMapper::toRequestDto)
+                .collect(Collectors.toList());
     }
 }
