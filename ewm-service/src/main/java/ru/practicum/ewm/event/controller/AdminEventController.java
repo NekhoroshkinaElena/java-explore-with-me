@@ -3,6 +3,7 @@ package ru.practicum.ewm.event.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.comment.CommentDtoOutput;
 import ru.practicum.ewm.event.dto.EventDtoForEditAdmin;
 import ru.practicum.ewm.event.dto.EventOutputDto;
 import ru.practicum.ewm.event.dto.GetEventRequestForAdmin;
@@ -49,5 +50,18 @@ public class AdminEventController {
         log.info("Поиск событий администратором.");
         return eventService.searchEventsAdmin(GetEventRequestForAdmin.of(users, states, categories, rangeStart,
                 rangeEnd, from, size));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public void deleteCommentAdmin(@PathVariable long commentId) {
+        log.info("Удаление комментария администратором за нарушение правил.");
+        eventService.deleteCommentAdmin(commentId);
+    }
+
+    @GetMapping("/comments")
+    public List<CommentDtoOutput> searchComments(@RequestParam(value = "text", required = false, defaultValue = "")
+                                                 String text) {
+        log.info("Поиск комментариев по тексту.");
+        return eventService.searchComments(text);
     }
 }

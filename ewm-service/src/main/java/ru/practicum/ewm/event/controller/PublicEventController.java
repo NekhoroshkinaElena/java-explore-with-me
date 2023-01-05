@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.client.EventClient;
 import ru.practicum.ewm.event.dto.EventOutputDto;
+import ru.practicum.ewm.event.dto.EventOutputDtoWithComments;
 import ru.practicum.ewm.event.dto.GetEventRequestForAll;
 import ru.practicum.ewm.event.model.Sort;
 import ru.practicum.ewm.event.service.EventService;
@@ -21,7 +22,7 @@ public class PublicEventController {
     private final EventClient eventClient;
 
     @GetMapping("/{id}")
-    public EventOutputDto getById(@PathVariable long id, HttpServletRequest request) {
+    public EventOutputDtoWithComments getById(@PathVariable long id, HttpServletRequest request) {
         log.info("Получение информации о событии.");
         eventClient.saveRequestInStatistic(request.getRequestURI(), request.getRemoteAddr());
         return eventService.getEventById(id);

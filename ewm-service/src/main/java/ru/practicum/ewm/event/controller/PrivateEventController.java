@@ -3,6 +3,8 @@ package ru.practicum.ewm.event.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.comment.CommentDtoInput;
+import ru.practicum.ewm.event.comment.CommentDtoOutput;
 import ru.practicum.ewm.event.dto.EvenShortDtoForUser;
 import ru.practicum.ewm.event.dto.EventOutputDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
@@ -76,8 +78,35 @@ public class PrivateEventController {
     }
 
     @GetMapping("/{eventId}/requests")
-    public List<RequestDto> getRequests(@PathVariable long userId, @PathVariable long eventId) {
+    public List<RequestDto> getRequests(@PathVariable long userId,
+                                        @PathVariable long eventId) {
         log.info("Получение информации о запросах на участие в событии авторизованного пользователя.");
         return eventService.getAllRequestForEvent(userId, eventId);
+    }
+
+
+    @PostMapping("/{eventId}/comments")
+    public CommentDtoOutput addComment(@PathVariable long userId,
+                                       @PathVariable long eventId,
+                                       @Valid @RequestBody CommentDtoInput commentDtoInput) {
+        log.info("Добавление комментария от авторизованного пользователя.");
+        return eventService.addComment(userId, eventId, commentDtoInput);
+    }
+
+    @PatchMapping("/{eventId}/comments/{commentId}")
+    public CommentDtoOutput editCommentUser(@PathVariable long userId,
+                                            @PathVariable long eventId,
+                                            @PathVariable long commentId,
+                                            @Valid @RequestBody CommentDtoInput commentDtoInput) {
+        log.info("Изменение комментария авторизованным пользователем");
+        return eventService.editCommentUser(userId, eventId, commentId, commentDtoInput);
+    }
+
+    @DeleteMapping("/{eventId}/comments/{commentId}")
+    public void deleteCommentUser(@PathVariable long userId,
+                                  @PathVariable long eventId,
+                                  @PathVariable long commentId) {
+        log.info("Удаление комментария авторизованным пользователем");
+        eventService.deleteCommentUser(userId, eventId, commentId);
     }
 }
