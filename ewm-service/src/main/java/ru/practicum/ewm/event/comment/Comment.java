@@ -1,4 +1,4 @@
-package ru.practicum.ewm.request.model;
+package ru.practicum.ewm.event.comment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,23 +8,24 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.user.model.User;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Entity(name = "REQUESTS")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Request {
+@Entity(name = "COMMENTS")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @Column(name = "created")
-    private String created;
+    @Column(name = "text_comment")
+    private String text;
     @ManyToOne
     private Event event;
     @ManyToOne
-    private User requester;
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status;
+    private User author;
+    @Column(name = "created")
+    private LocalDateTime created;
 }

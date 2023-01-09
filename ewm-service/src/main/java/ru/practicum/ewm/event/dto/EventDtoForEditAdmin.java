@@ -10,7 +10,7 @@ import ru.practicum.ewm.event.location.LocationDto;
 @AllArgsConstructor
 public class EventDtoForEditAdmin {
     private String annotation;
-    private long category;
+    private Long category;
     private String description;
     private String eventDate;
     private LocationDto location;

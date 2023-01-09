@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.event.client.EventClient;
+import ru.practicum.ewm.event.comment.*;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.mapper.TimeMapper;
@@ -44,6 +45,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final RequestRepository requestRepository;
     private final EventClient eventClient;
+    private final CommentRepository commentRepository;
 
     @Override
     public EventOutputDto save(NewEventDto newEventDto, long userId) {
@@ -219,7 +221,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventOutputDto getEventById(long eventId) {
+    public EventOutputDtoWithComments getEventById(long eventId) {
         Event event = eventRepository.findEventByIdAndState(eventId, StateEvent.PUBLISHED);
         if (event == null) {
             log.error("Событие с id " + eventId + " не найдено.");
@@ -227,7 +229,10 @@ public class EventServiceImpl implements EventService {
         }
         event.setViews(eventClient.getViewsForEvent(eventId));
         eventRepository.save(event);
-        return EventMapper.toEventDtoOutput(event);
+        List<CommentDtoOutput> commentDtoOutputs = commentRepository.findAllByEventId(eventId).stream()
+                .map(CommentMapper::toCommentDtoOutput)
+                .collect(Collectors.toList());
+        return EventMapper.eventOutputDtoWithComments(event, commentDtoOutputs);
     }
 
     @Override
@@ -296,6 +301,60 @@ public class EventServiceImpl implements EventService {
             }
         }
         return eventsStream.collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDtoOutput addComment(long userId, long eventId, CommentDtoInput commentDtoInput) {
+        Event event = getEvent(eventId);
+        if (!event.getState().equals(StateEvent.PUBLISHED)) {
+            log.error("Событие с id " + eventId + "не опубликовано");
+            throw new NotFoundException("Событие с id " + eventId + " не опубликовано");
+        }
+        Comment comment = CommentMapper.createComment(commentDtoInput,
+                event, getUser(userId));
+        return CommentMapper.toCommentDtoOutput(commentRepository.save(comment));
+    }
+
+    @Override
+    public CommentDtoOutput editCommentUser(long userId, long eventId,
+                                            long commentId, CommentDtoInput commentDtoInput) {
+        Comment comment = getComment(commentId);
+        if (comment.getAuthor().getId() != userId) {
+            log.error("Вы не можете изменить комментарий");
+            throw new ValidationException("Вы не можете изменить комментарий");
+        }
+        comment.setText(commentDtoInput.getText());
+        comment.setCreated(LocalDateTime.now());
+        return CommentMapper.toCommentDtoOutput(commentRepository.save(comment));
+    }
+
+    @Override
+    public void deleteCommentUser(long userId, long eventId, long commentId) {
+        Comment comment = getComment(commentId);
+        if (comment.getAuthor().getId() != userId || comment.getEvent().getId() != eventId) {
+            log.error("Вы не можете удалить комментарий");
+            throw new ValidationException("Вы не можете удалить комментарий");
+        }
+        commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    public void deleteCommentAdmin(long commentId) {
+        commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    public List<CommentDtoOutput> searchComments(String text) {
+        return commentRepository.getAllByTextContainsIgnoreCase(text).stream()
+                .map(CommentMapper::toCommentDtoOutput)
+                .collect(Collectors.toList());
+    }
+
+    private Comment getComment(long commentId) {
+        return commentRepository.findById(commentId).orElseThrow(() -> {
+            log.error("Комментария с id " + commentId + " не существует.");
+            return new NotFoundException("Комментария с id " + commentId + " не существует.");
+        });
     }
 
     private Category getCategory(long categoryId) {

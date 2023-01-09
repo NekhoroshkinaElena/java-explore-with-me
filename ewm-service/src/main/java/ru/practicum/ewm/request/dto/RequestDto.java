@@ -11,9 +11,9 @@ import ru.practicum.ewm.request.model.RequestStatus;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestDto {
-    private long id;
-    private long requester;
-    private long event;
+    private Long id;
+    private Long requester;
+    private Long event;
     private RequestStatus status;
     private String created;
 }

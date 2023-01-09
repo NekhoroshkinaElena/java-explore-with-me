@@ -14,7 +14,7 @@ public class EvenShortDtoForUser {
     private CategoryDtoInput category;
     private int confirmedRequests;
     private String eventDate;
-    private long id;
+    private Long id;
     private UserShortDto initiator;
     private Boolean paid;
     private String title;
