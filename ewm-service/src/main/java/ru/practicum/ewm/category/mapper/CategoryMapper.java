@@ -9,7 +9,7 @@ import ru.practicum.ewm.category.model.Category;
 public class CategoryMapper {
 
     public static Category createCategory(NewCategoryDto newCategoryDto) {
-        return new Category(0L, newCategoryDto.getName());
+        return new Category(null, newCategoryDto.getName());
     }
 
     public static CategoryDtoOutput toCategoryDtoOutput(Category category) {

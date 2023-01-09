@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class CommentMapper {
 
     public static Comment createComment(CommentDtoInput commentDtoInput, Event event, User user) {
-        return new Comment(0L, commentDtoInput.getText(), event, user, LocalDateTime.now());
+        return new Comment(null, commentDtoInput.getText(), event, user, LocalDateTime.now());
     }
 
     public static CommentDtoOutput toCommentDtoOutput(Comment comment) {

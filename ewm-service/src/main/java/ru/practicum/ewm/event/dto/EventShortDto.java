@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class EventShortDto {
     private String annotation;
-    private long category;
+    private Long category;
     private String description;
     private String eventDate;
-    private long eventId;
+    private Long eventId;
     private Boolean paid;
     private int participantLimit;
     private String title;

@@ -19,7 +19,7 @@ public class RequestMapper {
     }
 
     public static Request createRequest(User user, Event event) {
-        return new Request(0L, TimeMapper.timeToString(LocalDateTime.now()),
+        return new Request(null, TimeMapper.timeToString(LocalDateTime.now()),
                 event, user, RequestStatus.PENDING);
     }
 }

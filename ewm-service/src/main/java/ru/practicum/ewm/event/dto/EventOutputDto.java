@@ -12,7 +12,7 @@ import ru.practicum.ewm.user.dto.UserShortDto;
 @Setter
 @AllArgsConstructor
 public class EventOutputDto {
-    private long id;
+    private Long id;
     private String annotation;
     private CategoryDtoOutput category;
     private int confirmedRequests;

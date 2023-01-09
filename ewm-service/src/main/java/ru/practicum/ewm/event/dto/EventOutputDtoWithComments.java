@@ -15,7 +15,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class EventOutputDtoWithComments {
-    private long id;
+    private Long id;
     private String annotation;
     private CategoryDtoOutput category;
     private int confirmedRequests;

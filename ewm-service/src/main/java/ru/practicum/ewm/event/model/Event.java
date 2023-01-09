@@ -20,7 +20,7 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private long id;
+    private Long id;
     @Column(name = "annotation", nullable = false)
     @Length(min = 20, max = 2000)
     private String annotation;

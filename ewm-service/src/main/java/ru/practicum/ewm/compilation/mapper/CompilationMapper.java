@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class CompilationMapper {
 
     public static Compilation createCompilation(CompilationInputDto compilationInputDto, List<Event> events) {
-        return new Compilation(0L, compilationInputDto.getTitle(),
+        return new Compilation(null, compilationInputDto.getTitle(),
                 compilationInputDto.getPinned(), events);
     }
 

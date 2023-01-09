@@ -7,7 +7,7 @@ import java.util.List;
 
 @Value
 public class CompilationOutputDto {
-    long id;
+    Long id;
     String title;
     Boolean pinned;
     List<EventOutputDto> events;

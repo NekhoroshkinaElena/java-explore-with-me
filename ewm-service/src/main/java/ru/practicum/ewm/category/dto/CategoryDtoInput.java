@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class CategoryDtoInput {
     @NotNull
-    private long id;
+    private Long id;
     @NotEmpty
     private String name;
 }

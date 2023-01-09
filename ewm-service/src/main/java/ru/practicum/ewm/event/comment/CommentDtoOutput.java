@@ -4,7 +4,7 @@ import lombok.Value;
 
 @Value
 public class CommentDtoOutput {
-    long id;
+    Long id;
     String text;
     String authorName;
     String created;

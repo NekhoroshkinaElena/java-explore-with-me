@@ -7,7 +7,7 @@ import ru.practicum.ewm.user.model.User;
 public class UserMapper {
 
     public static User createUser(NewUserRequest newUserRequest) {
-        return new User(0L, newUserRequest.getName(), newUserRequest.getEmail());
+        return new User(null, newUserRequest.getName(), newUserRequest.getEmail());
     }
 
     public static UserDto toUserDto(User user) {

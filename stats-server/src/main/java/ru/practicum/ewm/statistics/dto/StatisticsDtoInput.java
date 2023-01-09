@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class StatisticsDtoInput {
-    private long id;
+    private Long id;
     private String app;
     private String uri;
     private String ip;

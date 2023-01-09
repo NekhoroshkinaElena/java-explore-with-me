@@ -22,7 +22,7 @@ import java.util.List;
 public class EventMapper {
 
     public static Event createEvent(NewEventDto newEventDto, User user, Category category) {
-        return new Event(0L, newEventDto.getAnnotation(), category, 0, LocalDateTime.now(),
+        return new Event(null, newEventDto.getAnnotation(), category, 0, LocalDateTime.now(),
                 newEventDto.getDescription(), TimeMapper.stringToTime(newEventDto.getEventDate()),
                 user, newEventDto.getLocation().getLat(), newEventDto.getLocation().getLon(),
                 newEventDto.getPaid(), newEventDto.getParticipantLimit(),
